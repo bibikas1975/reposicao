@@ -15,7 +15,6 @@ class TaskOptimizer:
         
     def solve(self) -> Optional[Schedule]:
         # 1. Variables Definition
-        # We mapped objects to indices for easier CP-SAT handling
         e_range = range(len(self.employees))
         t_range = range(len(self.tasks))
         s_range = range(TOTAL_BLOCKS)
@@ -42,39 +41,61 @@ class TaskOptimizer:
             for s in s_range:
                 self.model.Add(sum(self.x[(e, t, s)] for t in t_range) <= 1)
 
-        # C. Task Exclusivity: At most 1 employee per task per block
-        for t in t_range:
-            for s in s_range:
-                self.model.Add(sum(self.x[(e, t, s)] for e in e_range) <= 1)
-
-        # D. Task Duration / Progress Requirement
-        # Requirement: Total assignments * base_speed * efficiency must >= effort?
-        # SIMPLIFICATION FOR OPTIMIZER:
-        # Since fatigue is dynamic and non-linear, it's hard to model exactly in CP-SAT without complex constraints.
-        # We will approximate: 
-        #   - We allocate 'duration_blocks' amount of time slots.
-        #   - We assume standard speed (1 block = 1 unit) for the Constraint Satisfaction.
-        #   - The "Cost Function" will punish assigning to slow people, but we force fixed duration here.
-        #   - Or better: The user asked to "Accumulate exactly its total duration in blocks".
-        # Let's interpret "duration" as "task.effort_required" assuming 1 unit/block for now to allow solution.
-        
+        # C. Task Capacity / Demand
         for t in t_range:
             task_obj = self.tasks[t]
-            # req_blocks = int(task_obj.effort_required) # Assuming effort is integer-ish blocks
-            # Let's use duration if we had it, or map effort to blocks.
-            # In Phase 2 we defined effort. Let's assume 1.0 effort = 1 block for planning.
-            required_blocks = int(task_obj.effort_required)
             
-            self.model.Add(sum(self.x[(e, t, s)] for e in e_range for s in s_range) == required_blocks)
+            if task_obj.is_fixed():
+                # --- FIXED SCHEDULE TASK (e.g. Caixa) ---
+                # Must meet specific staffing demand at each time block
+                demand_curve = task_obj.demand_curve
+                
+                for s in s_range:
+                    demand = demand_curve[s] if s < len(demand_curve) else 0
+                    
+                    if demand > 0:
+                        # Sum of assigned employees >= demand
+                        self.model.Add(sum(self.x[(e, t, s)] for e in e_range) >= demand)
+                    else:
+                        # If demand is 0, should we force 0 assignment?
+                        # Usually yes, unless it's 'optional' over-staffing.
+                        # For 'Caixa', 0 demand means closed or no need?
+                        # Let's enforce 0 to be clean, or allow it?
+                        # Enforcing 0 prevents ghost working.
+                        self.model.Add(sum(self.x[(e, t, s)] for e in e_range) == 0)
+
+            else:
+                # --- FLEXIBLE TASK (e.g. Reposicao) ---
+                # 1. Total Volume Requirement
+                required_blocks = int(task_obj.effort_required)
+                self.model.Add(sum(self.x[(e, t, s)] for e in e_range for s in s_range) == required_blocks)
+                
+                # 2. Exclusivity (Single Worker per Task?)
+                # "Reposição de Mercearia" -> can 2 people do it?
+                # Usually YES, multiple people can stock shelves.
+                # So we DO NOT enforce "sum(e) <= 1".
+                # However, if it's a "One Person Job", we would.
+                # Given the scale, assuming parallel work is allowed.
+                pass
+
+        # D. Skill Requirements
+        for t in t_range:
+            task_obj = self.tasks[t]
+            if not task_obj.skill_needed:
+                continue
+                
+            for e in e_range:
+                emp_obj = self.employees[e]
+                if not emp_obj.has_skill(task_obj.skill_needed):
+                    # Cannot do this task ever
+                    for s in s_range:
+                        self.model.Add(self.x[(e, t, s)] == 0)
 
 
         # 3. Objective Function (Soft Constraints & Costs)
         total_cost = 0
 
         # A. Preference / Capability Cost
-        # If employee is assigned a task they don't like (or is not 'ideal'), add penalty.
-        # Also could factor in base_speed (prefer faster people implicitly? No, just purely cost).
-        
         for e in e_range:
             emp_obj = self.employees[e]
             for t in t_range:
@@ -83,57 +104,55 @@ class TaskOptimizer:
                 # Check preference
                 is_ideal = (task_obj.id in emp_obj.ideal_tasks) if emp_obj.ideal_tasks else True
                 
-                # Cost per block assigned
-                # If not ideal, penalty = 10 (arbitrary)
+                # Base penalty
                 penalty = 0 if is_ideal else 5
                 
                 if penalty > 0:
                     for s in s_range:
                         total_cost += self.x[(e, t, s)] * penalty
 
-        # B. Switching Costs
-        # switch[e, s] = 1 if employee e changes task at block s (compared to s-1)
-        # Detailed logic: if x[e,t,s] != x[e,t,s-1], determination is tricky.
-        # Simplified: If x[e,t,s] == 1 and x[e,t,s-1] == 0, is it a switch? Or a start?
-        # Let's count "Starting a task leg" as a switch cost (except the very first block of shift?)
-        # Let's use a standard trick: y[e,s] = sum(x[e,t,s]*t) is not linear.
-        
-        # We will create explicit IsStart variables or Switch variables.
-        # Let's penalize "Change of Task ID". 
-        # switch_var[e, s] is bool.
-        # cost += switch_var * emp.switch_cost
-        
+        # B. Switching Costs (Continuity)
         for e in e_range:
             emp_obj = self.employees[e]
             if emp_obj.switch_cost <= 0:
                 continue
             
+            # Weighted switch cost
+            cost_weight = int(emp_obj.switch_cost * 100)
+            
             for s in range(1, TOTAL_BLOCKS):
-                # For each task, did it change?
-                # Case 1: Task t was ON at s-1, OFF at s -> Stop/Switch
-                # Case 2: Task t was OFF at s-1, ON at s -> Start/Switch
-                
-                # A simpler proxy for switch cost in CP-SAT:
-                # Penalize every time a task starts. (x[s] == 1 and x[s-1] == 0)
-                # This encourages long continuous blocks.
                 for t in t_range:
-                    # start_flag[t] is 1 if task t starts at s
-                    start_var = self.model.NewBoolVar(f"start_e{e}_t{t}_s{s}")
-                    
+                    # Penalize starting a task segment
                     # start_var >= x[s] - x[s-1]
-                    # if x[s]=1, x[s-1]=0 -> start_var >= 1 -> start_var=1
-                    # if x[s]=1, x[s-1]=1 -> start_var >= 0 -> ... minimization makes it 0
+                    start_var = self.model.NewBoolVar(f"start_e{e}_t{t}_s{s}")
                     self.model.Add(start_var >= self.x[(e, t, s)] - self.x[(e, t, s-1)])
                     
-                    # Add to cost
-                    # Note: This penalizes "Resuming" a task too. 
-                    total_cost += start_var * int(emp_obj.switch_cost * 100) 
-                    # *100 because solver likes integers.
+                    total_cost += start_var * cost_weight
+
+        # C. Priority Scheduling (High Priority Flexible Tasks -> Early)
+        for t in t_range:
+            task_obj = self.tasks[t]
+            if task_obj.is_fixed():
+                continue 
+                
+            # Priority Weight: 20.0 / priority
+            # Prio 1 -> Weight 20, Prio 4 -> Weight 5
+            time_penalty_weight = 20.0 / max(1, task_obj.priority)
+            
+            for e in e_range:
+                for s in s_range:
+                    # Cost += x[e,t,s] * s * weight
+                    scaled_s = s * 0.1 
+                    total_cost += self.x[(e, t, s)] * int(scaled_s * time_penalty_weight)
 
         # Minimize
         self.model.Minimize(total_cost)
 
         # 4. Solvers
+        # To find OPTIMAL, we need more time or parallel search.
+        # FEASIBLE means it hit the time limit or was happy enough.
+        self.solver.parameters.max_time_in_seconds = 300.0 # Give it 5 minutes
+        self.solver.parameters.num_search_workers = 8 # Use multi-core
         status = self.solver.Solve(self.model)
         
         if status in (cp_model.OPTIMAL, cp_model.FEASIBLE):
@@ -153,10 +172,9 @@ class TaskOptimizer:
                 task_obj = self.tasks[t]
                 for s in s_range:
                     if self.solver.Value(self.x[(e, t, s)]) == 1:
-                        # We must respect the Schedule.assign checks
-                        # but we know they are valid by constraints.
-                        # However, Schedule.assign might raise error if we didn't model "Already busy" correctly?
-                        # Our constraints B and C ensure exclusivity.
+                        # Direct assignment bypassing strict checking (as we trust the solver)
+                        # We just populate the grid.
+                        # Note: Sched.grid is Dict[emp_id, task_id]
                         sched.grid[s][emp_obj.id] = task_obj.id
         
         return sched

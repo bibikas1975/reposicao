@@ -1,0 +1,235 @@
+# --- BASE DE DADOS COMPLETA COM CATEGORIA E PERFIL ---
+
+[[funcionarios]]
+nome = "ADRIANA MARIA DE ANDRADE SANTOS"
+categoria = "experiente"
+perfil = "sprinter"  # Eficiente e rápida a despachar no início
+competencias = ["caixa", "reposicao_retalho", "reposicao_frescos"]
+segunda = ["08:30-12:30", "14:00-18:00"]
+terca = ["08:00-12:30", "14:00-17:30"]
+quarta = ["06:00-10:30", "12:00-15:30"]
+quinta = ["06:00-10:30", "12:00-15:30"]
+sexta = "Folga Complementar"
+sabado = "Folga Obrigatoria"
+domingo = ["06:00-10:30", "12:00-15:30"]
+
+[[funcionarios]]
+nome = "ANDREA MARIZE BARBOSA GOMES"
+categoria = "experiente"
+perfil = "constante" # Metódica, ideal para turnos longos de tarde/noite
+competencias = ["caixa", "reposicao_retalho", "limpeza"]
+segunda = ["14:30-16:00", "17:30-22:00"]
+terca = ["14:30-16:00", "17:30-22:00"]
+quarta = ["14:30-16:00", "17:30-22:00"]
+quinta = ["15:30-18:00", "19:30-22:30"]
+sexta = ["14:00-16:00", "17:30-22:00"]
+sabado = "Folga Complementar"
+domingo = "Folga Obrigatoria"
+
+[[funcionarios]]
+nome = "ANGELA INES MADEIRA COSTA"
+categoria = "experiente"
+perfil = "reativo"  # Focada na frente de loja e atendimento (Padaria/Caixa)
+competencias = ["caixa", "reposicao_frescos", "padaria", "rececao_mercadoria"]
+segunda = ["06:00-10:15", "11:45-13:30"]
+terca = ["06:00-10:15", "11:45-13:30"]
+quarta = "Folga Complementar"
+quinta = "Folga Obrigatoria"
+sexta = ["06:00-10:00", "11:30-13:30"]
+sabado = ["06:00-09:00", "10:30-13:30"]
+domingo = ["06:00-09:00", "10:30-13:30"]
+
+[[funcionarios]]
+nome = "CARLA LUISA VALERIO DIAS SIMOES"
+categoria = "experiente"
+perfil = "sprinter"  # Eficiente e rápida a despachar no início
+competencias = ["caixa", "reposicao_retalho", "reposicao_frescos"]
+segunda = "VAZIO"
+terca = ["06:00-09:30", "11:00-15:30"]
+quarta = "Folga Complementar"
+quinta = ["06:00-09:00", "10:30-14:30"]
+sexta = ["06:00-09:00", "10:30-14:30"]
+sabado = "Folga Obrigatoria"
+domingo = ["06:00-09:00", "10:30-14:30"]
+
+[[funcionarios]]
+nome = "CATARINA ANDREIA FIGUEIREDO VAZ"
+categoria = "experiente"
+perfil = "sprinter"  # Eficiente e rápida a despachar no início
+competencias = ["caixa", "reposicao_retalho", "reposicao_frescos"]
+segunda = "VAZIO"
+terca = ["10:30-14:00", "15:30-19:00"]
+quarta = ["09:30-13:00", "14:30-18:00"]
+quinta = ["10:30-14:30", "16:00-20:00"]
+sexta = ["10:30-14:00", "15:30-19:00"]
+sabado = "Folga Complementar"
+domingo = "Folga Obrigatoria"
+
+[[funcionarios]]
+nome = "DAVID HENRIQUE COSTA INOCENCIO DIAS"
+categoria = "novo"
+perfil = "fragmentado" # Rende melhor com alternância de tarefas (Reposição/Limpeza)
+competencias = ["reposicao_retalho", "limpeza"]
+segunda = ["13:00-16:00", "17:30-22:00"]
+terca = ["13:00-17:30", "19:00-22:00"]
+quarta = ["13:00-17:00", "18:30-22:00"]
+quinta = "VAZIO"
+sexta = "Folga Complementar"
+sabado = "Folga Obrigatoria"
+domingo = ["13:30-16:30", "18:00-22:30"]
+
+[[funcionarios]]
+nome = "DIOGO DIAS PINTO"
+categoria = "experiente"
+perfil = "sprinter"  # Eficiente e rápida a despachar no início
+competencias = ["caixa", "reposicao_retalho", "reposicao_frescos"]
+segunda = "VAZIO"
+terca = "VAZIO"
+quarta = "Folga Complementar"
+quinta = "Folga Obrigatoria"
+sexta = "18:00-22:00"
+sabado = ["12:30-16:00", "17:30-22:00"]
+domingo = ["10:00-14:00", "15:30-19:30"]
+
+[[funcionarios]]
+nome = "GONCALO ALEXANDRE FERREIRA"
+categoria = "experiente"
+perfil = "sprinter"  # Perfil de liderança e fecho rápido
+competencias = ["caixa", "reposicao_retalho", "fecho_loja"]
+segunda = "VAZIO"
+terca = "Folga Complementar"
+quarta = "Folga Obrigatoria"
+quinta = ["14:00-18:00", "19:30-22:30"]
+sexta = ["13:30-18:00", "19:30-22:00"]
+sabado = ["13:30-18:00", "19:30-22:00"]
+domingo = ["14:00-18:00", "19:30-22:30"]
+
+[[funcionarios]]
+nome = "JOAO ANDRE ARAUJO VILA VERDE"
+categoria = "experiente"
+perfil = "sprinter"  # Eficiente e rápida a despachar no início
+competencias = ["caixa", "reposicao_retalho", "reposicao_frescos"]
+segunda = "Folga Complementar"
+terca = "Folga Obrigatoria"
+quarta = ["09:00-13:00", "14:30-18:30"]
+quinta = ["08:30-13:00", "14:30-18:00"]
+sexta = ["06:00-10:30", "12:00-15:30"]
+sabado = ["06:00-10:30", "12:00-15:30"]
+domingo = ["10:00-13:30", "15:00-19:30"]
+
+[[funcionarios]]
+nome = "JOSE PEDRO PARRILHA ALEXANDRE"
+categoria = "experiente"
+perfil = "sprinter"  # Eficiente e rápida a despachar no início
+competencias = ["caixa", "reposicao_retalho", "reposicao_frescos"]
+segunda = ["13:30-16:00", "17:30-22:00"]
+terca = "VAZIO"
+quarta = "Folga Complementar"
+quinta = ["14:00-18:00", "19:30-22:30"]
+sexta = ["13:30-18:00", "19:30-22:00"]
+sabado = ["13:30-17:30", "19:00-22:00"]
+domingo = "Folga Obrigatoria"
+
+[[funcionarios]]
+nome = "LILIANA MARGARIDA ZEFERINO JANUARIO"
+categoria = "experiente"
+perfil = "sprinter"  # Eficiente e rápida a despachar no início
+competencias = ["caixa", "reposicao_retalho", "reposicao_frescos"]
+segunda = "VAZIO"
+terca = ["12:30-16:00", "17:30-22:00"]
+quarta = ["12:30-16:00", "17:30-22:00"]
+quinta = ["13:00-16:30", "18:00-22:30"]
+sexta = "Folga Complementar"
+sabado = ["06:00-10:30", "12:00-15:30"]
+domingo = "Folga Obrigatoria"
+
+[[funcionarios]]
+nome = "LUCAS ALEXANDRE TOMAS LUZ PICADO"
+categoria = "experiente"
+perfil = "sprinter"  # Eficiente e rápida a despachar no início
+competencias = ["caixa", "reposicao_retalho", "reposicao_frescos"]
+segunda = ["13:30-16:00", "17:30-22:00"]
+terca = ["13:30-17:30", "19:00-22:00"]
+quarta = ["13:30-17:30", "19:00-22:00"]
+quinta = "VAZIO"
+sexta = "Folga Complementar"
+sabado = "Folga Obrigatoria"
+domingo = ["14:00-18:00", "19:30-22:30"]
+
+[[funcionarios]]
+nome = "MARLENE ALEXANDRE ARAUJO SANTOS"
+categoria = "experiente"
+perfil = "sprinter"  # Eficiente e rápida a despachar no início
+competencias = ["caixa", "reposicao_retalho", "reposicao_frescos"]
+segunda = ["06:00-09:00", "10:30-14:00"]
+terca = ["06:00-10:30", "12:00-14:00"]
+quarta = ["06:00-10:30", "12:00-14:00"]
+quinta = ["06:00-10:30", "12:00-13:30"]
+sexta = "06:00-10:30"
+sabado = "Folga Complementar"
+domingo = "Folga Obrigatoria"
+
+[[funcionarios]]
+nome = "NEUZA MAFALDA SILVA CARLINHOS"
+categoria = "experiente"
+perfil = "sprinter"  # Eficiente e rápida a despachar no início
+competencias = ["caixa", "reposicao_retalho", "reposicao_frescos"]
+segunda = ["06:00-09:00", "10:30-15:00"]
+terca = ["06:00-08:45", "10:15-13:45"]
+quarta = ["06:00-09:00", "10:30-15:15"]
+quinta = "Folga Complementar"
+sexta = "Folga Obrigatoria"
+sabado = ["06:00-09:00", "10:30-13:30"]
+domingo = "Folga Obrigatoria"
+
+[[funcionarios]]
+nome = "MAGDA RENATA MARQUES LOURENCO BRAGAIA"
+categoria = "experiente"
+perfil = "sprinter"  # Eficiente e rápida a despachar no início
+competencias = ["caixa", "reposicao_retalho", "reposicao_frescos"]
+segunda = ["12:30-16:00", "17:30-22:00"]
+terca = "Folga Complementar"
+quarta = ["12:30-16:00", "17:30-22:00"]
+quinta = ["13:00-16:30", "18:00-22:30"]
+sexta = ["12:30-16:00", "17:30-22:00"]
+sabado = ["10:00-14:00", "15:30-19:30"]
+domingo = "Folga Obrigatoria"
+
+[[funcionarios]]
+nome = "NICOLE FERREIRA ALEXANDRE"
+categoria = "experiente"
+perfil = "sprinter"  # Eficiente e rápida a despachar no início
+competencias = ["caixa"]
+segunda = "13:00-17:30"
+terca = "Folga Complementar"
+quarta = "Folga Obrigatoria"
+quinta = "08:00-12:30"
+sexta = ["08:00-12:30", "14:00-15:30"]
+sabado = ["09:00-12:30", "14:00-17:30"]
+domingo = ["08:00-12:30", "14:00-17:00"]
+
+[[funcionarios]]
+nome = "TANIA INES GASPAR"
+categoria = "experiente"
+perfil = "constante" # Fiável para manter a loja organizada durante todo o dia
+competencias = ["caixa", "reposicao_retalho", "reposicao_frescos"]
+segunda = ["08:00-12:00", "13:30-17:30"]
+terca = ["10:30-14:00", "15:45-20:15"]
+quarta = "Folga Complementar"
+quinta = "Folga Obrigatoria"
+sexta = ["10:00-14:00", "15:30-19:30"]
+sabado = ["12:30-16:00", "17:30-22:00"]
+domingo = ["13:00-16:00", "18:00-22:30"]
+
+[[funcionarios]]
+nome = "TIAGO BARTOLOMEU CORDEIRO"
+categoria = "experiente"
+perfil = "sprinter"  # Eficiente e rápida a despachar no início
+competencias = ["caixa", "reposicao_retalho", "reposicao_frescos"]
+segunda = ["06:00-10:30", "12:00-15:30"]
+terca = "VAZIO"
+quarta = "Folga Complementar"
+quinta = ["06:00-10:30", "12:00-15:30"]
+sexta = "Folga Obrigatoria"
+sabado = "Ausencia"
+domingo = ["06:00-10:30", "12:00-15:30"]

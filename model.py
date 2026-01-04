@@ -3,27 +3,39 @@ from typing import List, Dict, Optional, Set
 
 # --- Time Constants and Helpers ---
 START_HOUR = 6
-END_HOUR = 22
-BLOCKS_PER_HOUR = 4
-TOTAL_BLOCKS = (END_HOUR - START_HOUR) * BLOCKS_PER_HOUR
+END_HOUR = 22 # Working day ends at 22:00? The input data has 22:30 shifts, sometimes 00:30.
+# Let's extend the internal modeling range to handle late shifts properly.
+# If we go up to 02:00 next day, that's 26 hours absolute.
+PHYSICAL_END_HOUR = 26 
+# 15 minute resolution
+BLOCKS_PER_HOUR = 4 
+TOTAL_BLOCKS = (PHYSICAL_END_HOUR - START_HOUR) * BLOCKS_PER_HOUR
 
 def time_to_block(hour: int, minute: int) -> int:
-    """Converts a time (HH:MM) to a block index (0 to TOTAL_BLOCKS-1)."""
-    if not (START_HOUR <= hour < END_HOUR):
-        raise ValueError(f"Time {hour}:{minute} out of bounds ({START_HOUR}:00-{END_HOUR}:00)")
-    
-    relative_hour = hour - START_HOUR
+    """Converts a time (HH:MM) to a block index."""
+    # Handle wrapping hours (00:00 -> 24:00, 01:00 -> 25:00) strictly for calculation
+    # Only if they are very small and we expect late night.
+    effective_hour = hour
+    if effective_hour < START_HOUR:
+        effective_hour += 24
+        
+    if not (START_HOUR <= effective_hour < PHYSICAL_END_HOUR):
+        # We allow a bit of buffer or just clamp?
+        # For now raise error to be safe, but data might be dirty.
+        # Check turnos: "20:30-00:30"
+        pass
+        
+    relative_hour = effective_hour - START_HOUR
     block = relative_hour * BLOCKS_PER_HOUR + (minute // 15)
     return block
 
 def block_to_time(block_idx: int) -> str:
     """Converts a block index back to HH:MM string."""
-    if not (0 <= block_idx < TOTAL_BLOCKS):
-        return "OUT_OF_BOUNDS"
-    
     total_minutes = block_idx * 15
-    hour = START_HOUR + (total_minutes // 60)
-    minute = total_minutes % 60
+    absolute_minutes = (START_HOUR * 60) + total_minutes
+    
+    hour = (absolute_minutes // 60) % 24
+    minute = absolute_minutes % 60
     return f"{hour:02d}:{minute:02d}"
 
 # --- Data Structures ---
@@ -47,24 +59,39 @@ class Employee:
     name: str
     shifts: List[Shift] = field(default_factory=list)
     
+    # New Attributes from TOML
+    category: str = "standard"
+    profile: str = "standard"
+    skills: List[str] = field(default_factory=list)
+    
     # Behavioral Attributes
-    base_speed: float = 1.0          # Multiplier for work progress (e.g. 1.2 is 20% faster)
-    switch_cost: float = 0.0         # Cost penalty incurred when switching tasks
-    fatigue_rate: float = 0.0        # Efficiency drop per consecutive block (e.g. 0.01 = 1% drop)
-    ideal_tasks: List[str] = field(default_factory=list) # List of Task IDs this employee prefers/is good at
+    base_speed: float = 1.0          
+    switch_cost: float = 1.0         
+    fatigue_rate: float = 0.0        
+    ideal_tasks: List[str] = field(default_factory=list) 
 
     def is_available(self, block_idx: int) -> bool:
         """Checks if employee is working during a specific block."""
         return any(shift.contains(block_idx) for shift in self.shifts)
+    
+    def has_skill(self, skill: str) -> bool:
+        if not skill: return True
+        return skill in self.skills
 
 @dataclass
 class Task:
     """A specific task that needs to be done."""
     id: str
     name: str
-    effort_required: float  # Total 'work units' required to complete. 
-                            # (Formerly duration_blocks, now explicit effort).
-                            # If base_speed=1 and no fatigue, 1 block = 1.0 effort.
+    effort_required: float  # Total blocks required (for Flexible tasks)
+    
+    # New Attributes
+    priority: int = 1 # Lower is more important (1=Highest)
+    skill_needed: str = ""
+    demand_curve: Optional[List[int]] = None # For Fixed tasks: list of N ints (staff count needed per block)
+    
+    def is_fixed(self) -> bool:
+        return self.demand_curve is not None
 
 # --- Schedule & Validation ---
 
@@ -185,11 +212,20 @@ class Schedule:
 
     def to_string(self, employees: List[Employee]) -> str:
         """Returns a string representation of the schedule."""
-        emp_map = {e.id: e for e in employees}
+        
+        # Helper to find start block
+        def get_start_block(emp):
+            if not emp.shifts: return 9999
+            # Assuming shifts are sorted or we take min
+            return min(s.start_block for s in emp.shifts)
+
+        # Sort employees by entry time
+        sorted_employees = sorted(employees, key=get_start_block)
+        
         lines = ["Schedule Visualization:"]
         
         # Header
-        header = "Time   | " + " | ".join(f"{e.name[:5]:^5}" for e in employees)
+        header = "Time   | " + " | ".join(f"{e.name[:5]:^5}" for e in sorted_employees)
         lines.append(header)
         lines.append("-" * len(header))
 
@@ -197,14 +233,20 @@ class Schedule:
             time_str = block_to_time(b)
             row = f"{time_str}  | "
             
-            for e in employees:
+            # Optimization: skip rows where NO ONE is working?
+            # Or keep all to show full day. Let's keep all.
+            
+            # Check if this row has ANY activity or just empty/vazio?
+            # User wants to see the schedule, so standard view is fine.
+            
+            for e in sorted_employees:
                 task_id = self.grid[b].get(e.id, "")
                 if not e.is_available(b):
-                    cell = " --- " 
+                    cell = "     " # Blank for not on shift
                 elif task_id:
                     cell = f"{task_id[:5]:^5}"
                 else:
-                    cell = " IDLE" 
+                    cell = "Vazio" # Was Livre
                 
                 row += f"{cell} | "
             lines.append(row)

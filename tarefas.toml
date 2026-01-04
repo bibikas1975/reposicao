@@ -1,0 +1,45 @@
+# --- CONFIGURAÇÃO DE REGRAS DE NEGÓCIO E TAREFAS ---
+
+[configuracoes_gerais]
+tempo_frentagem_final_minutos = 60
+tempo_limpeza_residuos_pos_palete = 15
+minimo_backups_caixa_na_loja = 1
+
+[tarefa.caixa]
+nome = "Operação de Caixa"
+prioridade = 1
+skill_requerida = "caixa"
+# Definição de fluxo intradia (Necessidade de funcionários)
+fluxo_segunda = [
+    { inicio = "08:00", fim = "10:30", funcionarios = 1 },
+    { inicio = "10:30", fim = "11:00", funcionarios = 2 },
+    { inicio = "11:00", fim = "13:00", funcionarios = 3 },
+    { inicio = "13:00", fim = "16:00", funcionarios = 4 },
+    { inicio = "16:00", fim = "21:00", funcionarios = 2 }
+]
+
+[tarefa.congelados]
+nome = "Reposição de Congelados"
+prioridade = 2
+skill_requerida = "reposicao_retalho"
+janela_critica_horas = 3
+pode_adiar = false
+carga_paletes = { segunda = 4, terca = 2, quarta = 1, quinta = 1, sexta = 2, sabado = 2, domingo = 1 }
+tempo_por_palete_minutos = 40
+
+[tarefa.reposicao_retalho]
+nome = "Reposição de Mercearia"
+prioridade = 3
+skill_requerida = "reposicao_retalho"
+pode_adiar = true
+# Carga variável mencionada: Seg 5, Ter 8, Qua 2
+carga_paletes = { segunda = 9, terca = 8, quarta = 2, quinta = 4, sexta = 5, sabado = 7, domingo = 3 }
+tempo_por_palete_minutos = 90
+
+[tarefa.planeamento]
+nome = "Planeamento de Horários"
+prioridade = 4
+skill_requerida = "fecho_loja" # Apenas encarregados/chefes
+frequencia = "semanal"
+duracao_minutos = 120
+estrategia = "dia_mais_folgado"

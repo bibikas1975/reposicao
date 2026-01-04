@@ -1,51 +1,49 @@
-from model import Employee, Shift, Task, time_to_block
+from persistence.loader import load_employees_for_day, load_tasks
 from optimizer import TaskOptimizer
+import sys
 
 def main():
-    print("Initializing Optimization Demo (Phase 3)...\n")
-
-    # 1. Setup Data (Similar to Phase 2)
-    emp_fast = Employee("E_FAST", "FastWorker", 
-        shifts=[Shift(time_to_block(8,0), time_to_block(12,0))],
-        switch_cost=2.0 # High switch penalty
-    )
-
-    emp_steady = Employee("E_STEADY", "SteadyWorker",
-        shifts=[Shift(time_to_block(8,0), time_to_block(16,0))],
-        switch_cost=0.5
-    )
-
-    emp_spec = Employee("E_SPEC", "Specialist",
-        shifts=[Shift(time_to_block(8,0), time_to_block(14,0))],
-        ideal_tasks=["T_HARD"],
-        switch_cost=1.0
-    )
-
-    employees = [emp_fast, emp_steady, emp_spec]
-
-    # Tasks
-    # T_HARD: 8 blocks (2 hours)
-    # T_EASY: 8 blocks (2 hours)
-    task_hard = Task("T_HARD", "HardTask", effort_required=8)
-    task_easy = Task("T_EASY", "EasyTask", effort_required=8)
+    print("--- Daily Task Planner (15-min Resolution) ---")
+    print("Loading data from TOML files...")
     
-    tasks = [task_hard, task_easy]
+    try:
+        employees = load_employees_for_day("turnos.toml", day_key="segunda")
+        tasks = load_tasks("tarefas.toml", day_key="segunda")
+    except Exception as e:
+        print(f"Error loading data: {e}")
+        # Identify if it's tomllib missing
+        if "tomllib" in str(e) or "module" in str(e):
+             print("TIP: Ensure you have Python 3.11+ or install 'tomli'.")
+        return
 
-    # 2. Run Optimizer
-    print("Running Constraint Programming Solver...")
-    optimizer = TaskOptimizer(employees, tasks)
+    print(f"\nLoaded {len(employees)} employees and {len(tasks)} tasks.")
+    
+    # Filter out employees with no shifts
+    active_employees = [e for e in employees if e.shifts]
+    print(f"Active employees for Monday: {len(active_employees)}")
+    
+    if not active_employees or not tasks:
+        print("No active employees or tasks found. Check your TOML data.")
+        return
+
+    print("\nRunning Optimizer (CP-SAT)...")
+    optimizer = TaskOptimizer(active_employees, tasks)
     schedule = optimizer.solve()
 
     if schedule:
         print("\nOptimization Successful!")
-        print(schedule.to_string(employees))
+        schedule_str = schedule.to_string(active_employees)
+        print(schedule_str)
         
-        # Calculate Phase 2 metrics on the result
-        print("\nCalculating Behavioral Metrics on Optimized Schedule:")
-        metrics = schedule.calculate_metrics(employees, tasks)
-        print(f"Total Cost: {metrics.total_cost:.2f}")
+        with open("horario_segunda.txt", "w", encoding="utf-8") as f:
+            f.write(schedule_str)
+        print("\nSchedule saved to 'horario_segunda.txt'")
+        
+        # Calculate metrics (Optional verification)
+        # metrics = schedule.calculate_metrics(active_employees, tasks)
+        # print(f"Total Cost: {metrics.total_cost:.2f}")
     else:
-        print("Failed to find a solution.")
+        print("Failed to find a solution. Constraints might be too tight.")
 
 if __name__ == "__main__":
     main()
